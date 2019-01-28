@@ -1,26 +1,15 @@
-FROM debian:jessie
-
-MAINTAINER Joeri Verdeyen <joeriv@yappa.be>
+FROM ruby:alpine
 
 ENV HTTP_PORT 1080
 ENV SMTP_PORT 1025
 
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -q -y \
-    libsqlite3-dev \
-    ruby \
-    ruby-dev \
-    build-essential && \
-    gem install --no-ri --no-rdoc mailcatcher && \
-    apt-get remove -y build-essential && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists
+EXPOSE $HTTP_PORT $SMTP_PORT
 
-RUN echo Europe/Brussels > /etc/timezone && dpkg-reconfigure --frontend noninteractive tzdata
-
-EXPOSE 1080 1025
+RUN apk add --no-cache g++ make musl-dev sqlite-libs sqlite-dev libstdc++ && \
+    gem install --no-document mailcatcher && \
+    apk del --purge g++ make musl-dev sqlite-dev
 
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
+
 CMD ["/run.sh"]
